@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive QCM Practice & Quiz (Pages 1 - 119)</title>
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background-color: #f0f2f5;
+            margin: 0;
+            padding: 20px;
+            color: #1c1e21;
+        }
+        .container {
+            max-width: 900px;
+            margin: auto;
+        }
+        h1 {
+            text-align: center;
+            color: #1877f2;
+            margin-bottom: 15px;
+        }
+        
+        /* Score Board Header */
+        .scoreboard {
+            position: sticky;
+            top: 10px;
+            z-index: 100;
+            background: #ffffff;
+            padding: 15px 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+            margin-bottom: 20px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            justify-content: space-between;
+            align-items: center;
+            border: 2px solid #1877f2;
+        }
+        .score-item {
+            font-size: 15px;
+            font-weight: bold;
+            color: #333;
+        }
+        .score-num {
+            font-size: 18px;
+            color: #1877f2;
+        }
+
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            width: 100%;
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px solid #eee;
+            align-items: center;
+        }
+        .search-input {
+            padding: 8px 12px;
+            font-size: 14px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            flex-grow: 1;
+            min-width: 200px;
+        }
+        .btn {
+            padding: 8px 14px;
+            font-size: 13px;
+            font-weight: bold;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: 0.2s;
+            background-color: #e4e6eb;
+            color: #050505;
+        }
+        .btn:hover { background-color: #d8dadf; }
+        .btn-reset { background-color: #e74c3c; color: white; }
+        .btn-reset:hover { background-color: #c0392b; }
+        .btn-active { background-color: #1877f2; color: white; }
+        .btn-sm { padding: 4px 8px; font-size: 12px; }
+
+        /* Question Cards */
+        .card {
+            background: #ffffff;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            margin-bottom: 25px;
+            padding: 20px;
+            border-left: 6px solid #1877f2;
+        }
+        .card.has-img { border-left-color: #f39c12; }
+        .card.is-slide { border-left-color: #7f8c8d; background: #fafafa; }
+        
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #f0f2f5;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .badge {
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: bold;
+            color: white;
+            display: inline-block;
+        }
+        .badge-page { background-color: #1877f2; }
+        .badge-img { background-color: #f39c12; }
+        .badge-slide { background-color: #7f8c8d; }
+
+        .question-text {
+            font-size: 16px;
+            font-weight: 600;
+            color: #050505;
+            margin-bottom: 15px;
+            line-height: 1.5;
+        }
+
+        /* Interactive Options */
+        .options-list {
+            list-style: none;
+            padding: 0;
+            margin: 0 0 15px 0;
+        }
+        .option-btn {
+            width: 100%;
+            text-align: left;
+            padding: 12px 15px;
+            margin-bottom: 8px;
+            border-radius: 8px;
+            background: #f7f8fa;
+            border: 2px solid #e4e6eb;
+            font-size: 15px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            color: #333;
+            display: block;
+        }
+        .option-btn:hover:not(.disabled) {
+            background: #edf5ff;
+            border-color: #1877f2;
+        }
+        .option-btn.selected-correct {
+            background-color: #d4edda !important;
+            border-color: #28a745 !important;
+            color: #155724 !important;
+            font-weight: bold;
+        }
+        .option-btn.selected-incorrect {
+            background-color: #f8d7da !important;
+            border-color: #dc3545 !important;
+            color: #721c24 !important;
+            font-weight: bold;
+        }
+        .option-btn.show-correct {
+            border-color: #28a745 !important;
+            background-color: #e8f5e9 !important;
+            color: #1b5e20 !important;
+            font-weight: bold;
+        }
+        .option-btn.disabled {
+            cursor: default;
+        }
+
+        .feedback-msg {
+            font-weight: bold;
+            font-size: 14px;
+            margin-top: 10px;
+            padding: 8px 12px;
+            border-radius: 6px;
+        }
+        .msg-correct { color: #155724; background-color: #d4edda; border: 1px solid #c3e6cb; }
+        .msg-incorrect { color: #721c24; background-color: #f8d7da; border: 1px solid #f5c6cb; }
+
+        .img-container {
+            text-align: center;
+            margin-top: 15px;
+            background: #fafafa;
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px dashed #ccc;
+        }
+        .img-container.img-hidden {
+            display: none !important;
+        }
+        .q-img {
+            max-width: 100%;
+            max-height: 480px;
+            border-radius: 6px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+        }
+        .img-link {
+            display: inline-block;
+            color: #1877f2;
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: bold;
+        }
+        .img-link:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>📝 Medical QCM Practice Test</h1>
+
+    <!-- Score & Control Board -->
+    <div class="scoreboard">
+        <div class="score-item">Progress: <span class="score-num" id="answeredCount">0</span> / <span id="totalQuestionsCount">113</span></div>
+        <div class="score-item">Score: <span class="score-num" id="correctCount">0</span></div>
+        <div class="score-item">Accuracy: <span class="score-num" id="accuracyPercent">0%</span></div>
+        <button class="btn btn-reset" onclick="resetQuiz()">🔄 Reset Test</button>
+
+        <div class="controls">
+            <input type="text" id="searchInput" class="search-input" placeholder="🔍 Search question or Page #..." onkeyup="filterCards()">
+            <button class="btn btn-active" id="filter-all" onclick="setFilter('all')">All Questions</button>
+            <button class="btn" id="filter-unanswered" onclick="setFilter('unanswered')">Unanswered</button>
+            <button class="btn" id="filter-incorrect" onclick="setFilter('incorrect')">Incorrect Only</button>
+            <button class="btn" id="filter-img" onclick="setFilter('img')">With Image Tag</button>
+            
+            <button class="btn" id="toggleAllImgBtn" onclick="toggleAllImages()" style="background-color: #f39c12; color: white;">👁️ Hide All Images</button>
+        </div>
+    </div>
+
+    <div id="cardsContainer"></div>
+</div>
+
+<script>
+const qcmData = [
+  { page: 1, hasImg: false, type: "q", text: "01. The fibrous membrane covering the outer surface of the bone is the ________.", options: ["A. Periosteum", "B. Epiphysis", "C. Endosteum", "D. Diaphysis"], ans: 0 },
+  { page: 2, hasImg: false, type: "q", text: "02. Most of the bones of the arms and hands are long bones; however, the bones in the wrist are categorized as ________.", options: ["A. Flat bones", "B. Short bones", "C. Sesamoid bones", "D. Irregular bones"], ans: 1 },
+  { page: 3, hasImg: false, type: "q", text: "03. Sesamoid bones are found embedded in ________.", options: ["A. Joints", "B. Muscles", "C. Ligaments", "D. Tendons"], ans: 3 },
+  { page: 4, hasImg: false, type: "q", text: "04. Bones that surround the spinal cord are classified as ________ bones.", options: ["A. Irregular", "B. Sesamoid", "C. Flat", "D. Short"], ans: 0 },
+  { page: 5, hasImg: false, type: "q", text: "05. Which category of bone is among the most numerous in the skeleton ?", options: ["A. Long bone", "B. Sesamoid bone", "C. Short bone", "D. Flat bone", "E. Irregular bone"], ans: 0 },
+  { page: 6, hasImg: false, type: "q", text: "06 - Cartilage, tendons, joints, ligaments and connective tissues together made up of system known as:", options: ["A. Nervous system", "B. Lymphatic System", "C. Locomotors system", "D. Respiratory System"], ans: 2 },
+  { page: 7, hasImg: true, type: "q", text: "07. Long bones enable body movement by acting as a ________.", options: ["A. Counter weight", "B. Resistive force", "C. Lever", "D. Fulcrum"], ans: 3 },
+  { page: 8, hasImg: true, type: "slide", text: "SLIDE: THANK YOU FOR YOUR ATTENTION" },
+  { page: 9, hasImg: false, type: "q", text: "1. Which type of fibrous joint connects the parietal bones ?", options: ["A. Gomphosis", "B. Suture", "C. Symphysis", "D. Syndesmosis"], ans: 1 },
+  { page: 10, hasImg: false, type: "q", text: "2. An example of a wide fibrous joint is ________.", options: ["A. A suture joint.", "C. A synostosis.", "D. A gomphosis", "E. The interosseous membrane of the forearm."], ans: 3 },
+  { page: 11, hasImg: false, type: "q", text: "3. A gomphosis ________.", options: ["A. Is formed by an interosseous membrane.", "B. Connects the tibia and fibula bones of the leg.", "C. Anchors a tooth to the jaw", "D. Contains a joint cavity"], ans: 2 },
+  { page: 12, hasImg: false, type: "q", text: "4. A syndesmosis is ________.", options: ["A. The type of joint that unites bones of the skull.", "B. A narrow fibrous joint.", "C. A fibrous joint that unites parallel bones", "D. The type of joint that anchors the teeth in the jaws"], ans: 2 },
+  { page: 13, hasImg: true, type: "q", text: "05- Where is Pubic Symphysis located?", options: ["A. Just below the Sacrum.", "B. Between the Pubic Bones.", "C. At the end of the Ischium Bone.", "D. Between Coccyx and Linea Alba"], ans: 1 },
+  { page: 14, hasImg: false, type: "q", text: "06- How much time does it take for cartilaginous pelvis to develop completely ?", options: ["A. In first twenty days.", "B. By first month of development.", "C. By second month of development.", "D. After One and half month."], ans: 2 },
+  { page: 15, hasImg: false, type: "q", text: "07- Pubic Bodies are enveloped in:", options: ["A. Ischium Bones", "B. Ilium Bones", "C. Articular Cartilage", "D. Hyaline Cartilage"], ans: 3 },
+  { page: 16, hasImg: false, type: "q", text: "08- Which of the following nerves is highly involved in the innervation of the pubic symphysis ?", options: ["A. Genitofemoral Nerve", "B. Sciatic Nerve", "C. Femoral Nerve", "D. Superior Gluteal Nerve"], ans: 0 },
+  { page: 17, hasImg: false, type: "q", text: "09. Which type of joint provides the greatest range of motion ?", options: ["A. Hinge.", "B. Plane.", "C. Ball-and-socket.", "D. Condyloid"], ans: 2 },
+  { page: 18, hasImg: false, type: "q", text: "10- Which type of joint allows for only uniaxial movement ?", options: ["A. Saddle joint.", "B. Ball-and-socket joint.", "C. Hinge joint.", "D. Condyloid joint"], ans: 2 },
+  { page: 19, hasImg: false, type: "q", text: "11- Which of the following is a type of synovial joint?", options: ["A. A synostosis.", "B. A plane joint.", "C. A synchondrosis.", "D. A suture"], ans: 1 },
+  { page: 20, hasImg: false, type: "q", text: "12- A bursa ________.", options: ["A. Secretes the lubricating fluid for a synovial joint.", "B. Is the strong band of connective tissue that holds bones together at a synovial joint.", "C. Surrounds a tendon at the point where the tendon crosses a joint.", "D. Prevents friction between skin and bone, or a muscle tendon and bone."], ans: 3 },
+  { page: 21, hasImg: false, type: "q", text: "13- At synovial joints, ________.", options: ["A. The articulating ends of the bones are directly connected by fibrous connective tissue.", "B. Intrinsic ligaments are located entirely inside of the articular capsule.", "C. The ends of the bones are enclosed within a space called a subcutaneous bursa.", "D. The joint cavity is filled with a thick, lubricating fluid"], ans: 3 },
+  { page: 22, hasImg: false, type: "q", text: "14- At a synovial joint, the synovial membrane ________.", options: ["A. Forms the fibrous connective walls of the joint cavity.", "B. Forms the intracapsular ligaments.", "C. Secretes the lubricating synovial fluid.", "D. Is the layer of cartilage that covers the articulating surfaces of the bones"], ans: 2 },
+  { page: 23, hasImg: false, type: "q", text: "15- Condyloid joints ________.", options: ["A. Are a type of ball-and-socket joint.", "B. Include the radiocarpal joint.", "C. Are found at the proximal radioulnar joint.", "D. Are a uniaxial diarthrotic joint."], ans: 1 },
+  { page: 24, hasImg: false, type: "q", text: "16- A meniscus is ________.", options: ["A. The articular cartilage that covers the ends of a bone at a synovial joint.", "B. The lubricating fluid within a synovial joint.", "C. Fluid-filled space that prevents friction between a muscle tendon and underlying bone.", "D. Fibrocartilage pad that provides padding between bones."], ans: 3 },
+  { page: 25, hasImg: false, type: "q", text: "17 - Synchondroses and symphyses are:", options: ["A. synovial joints", "B. cartilaginous joints", "C. fibrous joints", "D. condyloid joints"], ans: 1 },
+  { page: 26, hasImg: true, type: "q", text: "18 - The movement of bone away from the midline of the body is called ________.", options: ["A. circumduction", "B. extension", "C. adduction", "D. Abduction"], ans: 3 },
+  { page: 27, hasImg: true, type: "q", text: "19- The movement of bone part toward the midline of the body is called ________.", options: ["A. circumduction", "B. extension", "C. adduction", "D. abduction"], ans: 2 },
+  { page: 28, hasImg: false, type: "q", text: "20 - Which of the following is not a characteristic of the synovial fluid ?", options: ["A. Lubrication", "B. Shock absorption", "C. Protection of articular cartilage", "D. Regulation of water balance in the joint"], ans: 3 },
+  { page: 29, hasImg: false, type: "q", text: "21 - The elbow is an example of which type of joint ?", options: ["A. hinge", "B. pivot", "C. saddle", "D. gliding"], ans: 0 },
+  { page: 30, hasImg: true, type: "slide", text: "SLIDE: THANK YOU FOR YOUR PARTICIPANT" },
+  { page: 31, hasImg: false, type: "q", text: "- Active shoulder flexion:", options: ["A. Normal range of movement: 150°- 180° CC", "B. Normal range of movement: 40°", "C. Normal range of movement: 180°", "D. Normal range of movement: 30°- 40°", "E. Normal range of movement: 80° – 90°"], ans: 0 },
+  { page: 32, hasImg: false, type: "q", text: "- Active shoulder extension:", options: ["A. Normal range of movement: 150°- 180° CC", "B. Normal range of movement: 40°", "C. Normal range of movement: 180°", "D. Normal range of movement: 30°- 40°", "E. Normal range of movement: 80° – 90°"], ans: 1 },
+  { page: 33, hasImg: false, type: "q", text: "- Active shoulder Abduction:", options: ["A. Normal range of movement: 150°- 180° CC", "B. Normal range of movement: 40°", "C. Normal range of movement: 180°", "D. Normal range of movement: 30°- 40°", "E. Normal range of movement: 80° – 90°"], ans: 2 },
+  { page: 34, hasImg: false, type: "q", text: "- Active shoulder Adduction:", options: ["A. Normal range of movement: 150°- 180° CC", "B. Normal range of movement: 40°", "C. Normal range of movement: 180°", "D. Normal range of movement: 30°- 40°", "E. Normal range of movement: 80° – 90°"], ans: 3 },
+  { page: 35, hasImg: false, type: "q", text: "- Active external rotation:", options: ["A. Normal range of movement: 150°- 180° CC", "B. Normal range of movement: 40°", "C. Normal range of movement: 180°", "D. Normal range of movement: 30°- 40°", "E. Normal range of movement: 80° – 90°"], ans: 4 },
+  { page: 36, hasImg: false, type: "q", text: "- What is Active movement ?", options: ["A. movement of the patient, controlled by himself.", "B. movement of the patient, controlled by the examiner.", "C. movement of the patient, with order of the examiner.", "D. movement of the patient, without order of the examiner.", "E. Movement performed independently by the patient."], ans: 4 },
+  { page: 37, hasImg: false, type: "q", text: "- What is Passive movement ?", options: ["A. movement of the patient, controlled by himself.", "B. movement of the patient, controlled by the examiner.", "C. movement of the patient, with order of the examiner.", "D. movement of the patient, without order of the examiner.", "E. All above incorrect"], ans: 1 },
+  { page: 38, hasImg: false, type: "q", text: "- TEST FOR ASSESSES THE IMPINGEMENT OF SUPRASPINATUS IS:", options: ["A. Painful arc test", "B. External rotation against resistance", "C. Hornblower’s sign", "D. Gerber’s lift-off test", "E. Scarf test"], ans: 0 },
+  { page: 39, hasImg: false, type: "q", text: "- TEST FOR ASSESSES THE FUNCTION OF THE INFRASPINATUS MUSCLE IS:", options: ["A. Painful arc test", "B. External rotation against resistance", "C. Hornblower’s sign", "D. Gerber’s lift-off test", "E. Scarf test"], ans: 1 },
+  { page: 40, hasImg: false, type: "q", text: "- TEST FOR ASSESSES THE FUNCTION OF THE TERES MINOR MUSCLE:", options: ["A. Painful arc test", "B. External rotation against resistance", "C. Hornblower’s sign", "D. Gerber’s lift-off test", "E. Scarf test"], ans: 2 },
+  { page: 41, hasImg: false, type: "q", text: "- TEST FOR ASSESSES THE FUNCTION OF THE SUBSCAPULARIS MUSCLE IS:", options: ["A. Painful arc test", "B. External rotation against resistance", "C. Hornblower’s sign", "D. Gerber’s lift-off test", "E. Scarf test"], ans: 3 },
+  { page: 42, hasImg: false, type: "q", text: "- TEST FOR ASSESSES THE FUNCTION OF THE ACROMIOCLAVICULAR JOINT IS:", options: ["A. Painful arc test", "B. External rotation against resistance", "C. Hornblower’s sign", "D. Gerber’s lift-off test", "E. Scarf test"], ans: 4 },
+  { page: 43, hasImg: false, type: "q", text: "01 - A 30-year-old woman golf player reports 1 months of felt on the inner side of her right elbow... What is the most likely diagnosis ?", options: ["A - Medial epicondylitis of right side", "B - Radial tunnel syndrome of right side", "C - Carpal tunnel syndrome of right side", "D - Lateral epicondylitis of right side", "E - Radiocapitellar Arthritis of Left side"], ans: 0 },
+  { page: 44, hasImg: true, type: "q", text: "02 - A 30-year-old woman tennis player complains 2 months of radiating pain from the outside of the right elbow... What is the most likely diagnosis ?", options: ["A - Medial epicondylitis of right side", "B - Radial tunnel syndrome of right side", "C - Carpal tunnel syndrome of right side", "D - Lateral epicondylitis of right side", "E - Radiocapitellar Arthritis"], ans: 3 },
+  { page: 45, hasImg: true, type: "q", text: "03- A 35-year-old female office worker reports 6 months of deep aching pain that is worse at night on her lateral dominant elbow... What is the most likely diagnosis?", options: ["A- Radiocapitellar Arthritis of left side", "B - Radial tunnel syndrome of left side", "C - Carpal tunnel syndrome of left side", "D - Lateral epicondylitis of right side", "E - Intersection Syndrome of left side"], ans: 1 },
+  { page: 46, hasImg: true, type: "q", text: "04. A 35 year old male complains of numbness and tingling along the inside of his elbow... Positive Tinel's sign. What is the most likely diagnosis ?", options: ["A. Ulnar tunnel syndrome", "B. Cubital tunnel syndrome", "C. Medial epicondylitis", "D. Ulnar collateroal ligament tear", "E. Elbow osteoarthritis"], ans: 1 },
+  { page: 47, hasImg: false, type: "q", text: "05 - What is another name for golfer Elbow ?", options: ["A. Lateral Epicondylitis", "B. Extensor Injury", "C. Medial Epicondylitis", "D. Olecranon bursitis"], ans: 2 },
+  { page: 48, hasImg: false, type: "q", text: "06 - What is another name for Tennis Elbow ?", options: ["A. Lateral Epicondylitis", "B. Extensor Injury", "C. Medial Epicondylitis", "D. Olecranon bursitis"], ans: 0 },
+  { page: 49, hasImg: true, type: "q", text: "07 - How much the normal carrying angle ?", options: ["A. Normal angle is 0°- 15°", "B. Normal angle is 5°- 15°", "C. Normal angle is 5°- 45°", "D. Normal angle is 10°- 45°"], ans: 1 },
+  { page: 50, hasImg: true, type: "q", text: "08 – What is the special tests or signs can be useful in the diagnosis of cubital tunnel syndrome ?", options: ["A - Allen test", "B - Wartenberg sign", "C - Tinel Sign", "D - All of the above"], ans: 2 },
+  { page: 51, hasImg: true, type: "q", text: "09 - How much the normal range of active elbow extension movement ?", options: ["A. Normal range is 0°", "B. Normal range is 40°", "C. Normal range is 80°", "D. Normal range is 100°- 120°"], ans: 0 },
+  { page: 52, hasImg: true, type: "q", text: "10 - How much the normal range of active elbow flexion movement ?", options: ["A. Normal range is 0°", "B. Normal range is 45°", "C. Normal range is 90", "D. Normal range is 0°- 145°"], ans: 3 },
+  { page: 53, hasImg: true, type: "q", text: "11 - How much the normal range of active pronation movement ?", options: ["A. Normal range is 0°- 40°", "B. Normal range is 0°- 60°", "C. Normal range is 0°- 85°", "D. Normal range is 0°- 120°"], ans: 2 },
+  { page: 54, hasImg: true, type: "q", text: "12 - How much the normal range of active supination movement ?", options: ["A. Normal range is 0°- 40°", "B. Normal range is 0°- 60°", "C. Normal range is 0°- 90°", "D. Normal range is 0°- 120°"], ans: 2 },
+  { page: 55, hasImg: true, type: "q", text: "13 - Swelling over olecranon process (Popeye elbow appearance). What's your diagnosis ?", options: ["A. Olecranon bursitis", "B. Popeye elbow", "C. Lateral epicondylitis", "D. Medial epicondylitis"], ans: 0 },
+  { page: 56, hasImg: true, type: "q", text: "14 - Test for Medial epicondylitis: Flex elbow, supinate hand, extend elbow. What's test name ?", options: ["A. Mill’s test", "B. Cozen’s test", "C. Chair Test", "D. Thomson’s test", "E. Golfer elbow test"], ans: 4 },
+  { page: 57, hasImg: true, type: "q", text: "15 - Inability to bring little finger close indicates Ulnar neuropathy. What's test name ?", options: ["A. Mill’s test", "B. Cozen’s test", "C. Chair Test", "D. Thomson’s test", "E. Wartenberg’s Sign"], ans: 4 },
+  { page: 58, hasImg: true, type: "q", text: "16 - Test for Lateral epicondylitis: Passively pronate forearm, flex wrist fully and extend elbow. What's test name ?", options: ["A. Mill’s test", "B. Cozen’s test", "C. Chair Test", "D. Thomson’s test"], ans: 0 },
+  { page: 59, hasImg: true, type: "q", text: "17 - The Chair pickup test is a best test for:", options: ["A. Lateral Epicondylitis", "B. Medial Epicondylitis", "C. Elbow Dislocation", "D. Olecranon bursitis", "E. Biceps tendinolitis"], ans: 0 },
+  { page: 60, hasImg: true, type: "q", text: "18 - The Cozen’s test is a best test for:", options: ["A. Elbow Dislocation", "B. Olecranon bursitis", "C. Medial Epicondylitis", "D. Lateral Epicondylitis", "E. Biceps tendinolitis"], ans: 3 },
+  { page: 61, hasImg: true, type: "q", text: "19 - The Pinch Grip test is a best test for:", options: ["A. Elbow Dislocation", "B. Olecranon bursitis", "C. Medial Epicondylitis", "D. Lateral Epicondylitis", "E. Neurological dysfunction"], ans: 4 },
+  { page: 62, hasImg: true, type: "q", text: "20 - The Golfer test is a best test for:", options: ["A. Elbow Dislocation", "B. Olecranon bursitis", "C. Medial Epicondylitis", "D. Lateral Epicondylitis", "E. Biceps tendinolitis"], ans: 2 },
+  { page: 63, hasImg: true, type: "q", text: "21 - Fully flex elbow with extension of wrist, shoulder abduction/depression for 3-5 mins. What's test name ?", options: ["A. Mill’s test", "B. Cozen’s test", "C. Chair Test", "D. Thomson’s test", "E. Elbow Flexion Test"], ans: 4 },
+  { page: 64, hasImg: true, type: "slide", text: "SLIDE: THANK YOU FOR YOUR PARTICIPANT !" },
+  { page: 65, hasImg: true, type: "q", text: "01- Pain in front of wrist, numbness/tingling thumb to 1/2 ring finger, positive Tinel's. Most likely diagnosis ?", options: ["A. Ulnar tunnel syndrome", "B. Carpal tunnel syndrome", "C. Medial epicondylitis", "D. Ulnar collateroal ligament tear"], ans: 1 },
+  { page: 66, hasImg: true, type: "q", text: "02 - Guyon’s canal compression: Injury producing PURELY SENSORY symptoms occurs in which zone ?", options: ["A- Zone 1", "B - Zone 2", "C - Zone 3", "D - Zones 1 and 2"], ans: 2 },
+  { page: 67, hasImg: true, type: "q", text: "03 - Guyon’s canal compression: Injury producing PURELY MOTOR symptoms occurs in which zone ?", options: ["A- Zone 1", "B - Zone 2", "C - Zone 3", "D - Zones 1 and 2"], ans: 1 },
+  { page: 68, hasImg: true, type: "q", text: "04 - Guyon’s canal compression: Injury producing SENSORY AND MOTOR symptoms occurs in which zone ?", options: ["A- Zone 1", "B - Zone 2", "C - Zone 3", "D - Zones 1 and 2"], ans: 0 },
+  { page: 69, hasImg: true, type: "q", text: "05 - What special tests or signs can be useful in the diagnosis of Guyon canal syndrome?", options: ["A - Allen test", "B - Wartenberg sign", "C - Froment sign", "D - All of the above"], ans: 2 },
+  { page: 70, hasImg: true, type: "q", text: "06 - Positive Phalen's Test and Tinel's test at right wrist. Most likely diagnosis ?", options: ["A- Medial epicondylitis", "B - Radial tunnel syndrome", "C - Carpal tunnel syndrome", "D - Lateral epicondylitis", "E - Ulnar tunnel syndrome"], ans: 2 },
+  { page: 71, hasImg: true, type: "q", text: "07 - Applies axial load to 1st metacarpal and rotates/grinds it. Positive: pain, crepitus. Test name ?", options: ["A. Phalen’s Test", "B. Finkelstein's Test", "C. Bunnel's test", "D. Watson's test", "E. Grind test"], ans: 4 },
+  { page: 72, hasImg: true, type: "q", text: "08 - Test for De Quervain's tenosynovitis: Fist with thumb inside, ulnar deviation. Test name ?", options: ["A. Phalen’s Test", "B. Finkelstein's Test", "C. Bunnel's test", "D. Watson's test", "E. Grind test"], ans: 1 },
+  { page: 73, hasImg: true, type: "q", text: "09 - Wrist allowed to flex by gravity in palmar flexion for 2 mins. Test for Carpal Tunnel. Test name ?", options: ["A. Phalen’s Test", "B. Finkelstein's Test", "C. Bunnel's test", "D. Watson's test", "E. Grind test"], ans: 0 },
+  { page: 74, hasImg: true, type: "q", text: "10 - Ring finger injury after tackle (FDP avulsion). Most likely diagnosis ?", options: ["A. Mallet Finger", "B. Jersey Finger", "C. Trigger Finger", "D. Boutonniere deformity", "E. Swan Neck Deformity"], ans: 1 },
+  { page: 75, hasImg: true, type: "q", text: "11 - Ring finger nodule at palm base, locked in bent position. Most likely diagnosis ?", options: ["A. Mallet Finger", "B. Jersey Finger", "C. Trigger Finger", "D. Boutonniere deformity", "E. Swan Neck Deformity"], ans: 2 },
+  { page: 76, hasImg: true, type: "q", text: "12- Extensor tendon rupture at DIP joint. Most likely diagnosis ?", options: ["A. Mallet Finger", "B. Jersey Finger", "C. Trigger Finger", "D. Boutonniere deformity", "E. Swan Neck Deformity"], ans: 0 },
+  { page: 77, hasImg: true, type: "q", text: "13- Middle joint cannot be straightened, fingertip cannot be bent (PIP flexion with DIP extension). Most likely diagnosis ?", options: ["A. Mallet Finger", "B. Jersey Finger", "C. Trigger Finger", "D. Boutonniere Deformity", "E. Swan Neck Deformity"], ans: 3 },
+  { page: 78, hasImg: true, type: "q", text: "14- DIP flexion with PIP hyperextension. Most likely diagnosis ?", options: ["A. Boutonniere Deformity", "B. Swan Neck Deformity", "C. Mallet Finger", "D. Trigger Finger", "E. Jersey Finger"], ans: 1 },
+  { page: 79, hasImg: true, type: "q", text: "15 - Tests for ulnar collateral ligament tear at MCP of thumb (>30 deg laxity). Test name ?", options: ["A. Wartenberg's Test", "B. Jeanne's Test", "C. Gamekeeper's Test", "D. Scaphoid shift test", "E. Finkelstein Test"], ans: 2 },
+  { page: 80, hasImg: true, type: "q", text: "16- Move wrist radial to ulnar deviation under axial load; clunk felt. Test name ?", options: ["A. Wartenberg's Test", "B. Gamekeeper's Test", "C. Scaphoid shift test", "D. Finkelstein Test", "E. Midcarpal instability Test"], ans: 4 },
+  { page: 81, hasImg: true, type: "q", text: "17 - Medical test used to examine arterial blood flow to the hands. Test name ?", options: ["A. Wartenberg's Test", "B. Gamekeeper's Test", "C. Scaphoid shift test", "D. Phalen’s Test", "E. Allen’s Test"], ans: 4 },
+  { page: 82, hasImg: true, type: "q", text: "18 - Key pinch with first MCP joint hyperextended. Test name ?", options: ["A. Wartenberg's Test", "B. Gamekeeper's Test", "C. Jeanne's Test", "D. Phalen’s Test", "E. Allen’s Test"], ans: 2 },
+  { page: 83, hasImg: true, type: "q", text: "19 - Direct pressure with two thumbs over median nerve in carpal tunnel for 30s. Test name ?", options: ["A. Gamekeeper's Test", "B. Jeanne's Test", "C. Phalen’s Test", "D. Allen’s Test", "E. Durkan’s Test"], ans: 4 },
+  { page: 84, hasImg: true, type: "q", text: "20 - Hold paper between thumb and index; flexes thumb IP joint when paper pulled. Test name ?", options: ["A. Jeanne's Test", "B. Phalen’s Test", "C. Allen’s Test", "D. Durkan’s Test", "E. Froment's Test"], ans: 4 },
+  { page: 85, hasImg: true, type: "slide", text: "SLIDE: THANK YOU FOR YOUR PARTICIPANT" },
+  { page: 86, hasImg: false, type: "q", text: "01 - How much is the normal range of hip flexion ?", options: ["A. Normal range about 65°", "B. Normal range about 90°", "C. Normal range about 110°", "D. Normal range about 130°"], ans: 3 },
+  { page: 87, hasImg: true, type: "q", text: "02 - Hitting the balls/heel of the feet to transmit pressure towards the hip. Test name ?", options: ["A. Compression test", "B. Schöber test", "C. Straight leg raising test", "D. Lasègue test"], ans: 0 },
+  { page: 88, hasImg: true, type: "q", text: "03 - Rolling the leg side-to-side while supine to test for hip fracture. Test name ?", options: ["A. Log Rolling Test", "B. Schöber test", "C. Lasègue test", "D. Straight leg raising test"], ans: 0 },
+  { page: 89, hasImg: true, type: "q", text: "04 - Piriformis muscle compresses the sciatic nerve. What syndrome ?", options: ["A. Piriformis Syndrome", "B. Extrapyramidal Syndrome", "C. Horner's syndrome", "D. Cauda equina Syndrome"], ans: 0 },
+  { page: 90, hasImg: true, type: "q", text: "05 - Compression of lateral femoral cutaneous nerve resulting in outer thigh numbness/burning. What condition ?", options: ["A. Meralgia paresthetica", "B. Greater Trochanteric Bursitis", "C. Sciatique", "D. Inguinal hernia"], ans: 0 },
+  { page: 91, hasImg: true, type: "q", text: "06 - Head of femur pushed out of acetabular socket. What condition ?", options: ["A. Hip dislocation", "B. Hip osteoarthritis", "C. Hip avascular necrosis", "D. Acetabular Fractures"], ans: 0 },
+  { page: 92, hasImg: true, type: "q", text: "07- Thighbone pushed backward (~90%), leg looks shorter and turns inward. What dislocation ?", options: ["A. Posterior hip dislocation", "B. Anterior hip dislocation", "C. Hip avascular necrosis", "D. Hip osteoarthritis"], ans: 0 },
+  { page: 93, hasImg: true, type: "q", text: "08- Thighbone pushed forward, leg turns outward. What dislocation ?", options: ["A. Posterior hip dislocation", "B. Anterior hip dislocation", "C. Hip avascular necrosis", "D. Hip osteoarthritis"], ans: 1 },
+  { page: 94, hasImg: true, type: "q", text: "09 - Pain on outside of hip/thigh, pain getting up from deep chair, pain pressing outside hip. Most likely diagnosis ?", options: ["A. Trochanteric bursitis", "B. Posterior hip dislocation", "C. Hip avascular necrosis", "D. Anterior hip dislocation"], ans: 0 },
+  { page: 95, hasImg: false, type: "q", text: "10 - Young dancer hears snapping sound in hip when walking/running. Most likely syndrome ?", options: ["A. Snapping hip syndrome", "B. Piriformis Syndrome", "C. Cauda equina Syndrome", "D. Meralgia Paresthetica"], ans: 0 },
+  { page: 96, hasImg: false, type: "q", text: "11- Snapping hip syndrome is sometimes called:", options: ["A. Dancer’s hip", "B. Hip osteoarthritis", "C. Hip avascular necrosis", "D. Anterior hip dislocation"], ans: 0 },
+  { page: 97, hasImg: true, type: "q", text: "11 - How much is the normal range of passive hip flexion ?", options: ["A. Normal range is 0°", "B. Normal range is 45°", "C. Normal range is 90", "D. Normal range is 120°"], ans: 3 },
+  { page: 98, hasImg: true, type: "q", text: "12 - How much is the normal range of passive hip external rotation ?", options: ["A. Normal range is 10°", "B. Normal range is 45°", "C. Normal range is 90 °", "D. Normal range is 120°"], ans: 1 },
+  { page: 99, hasImg: true, type: "q", text: "13 - How much is the normal range of passive hip internal rotation ?", options: ["A. Normal range is 10°", "B. Normal range is 40°", "C. Normal range is 90 °", "D. Normal range is 120°"], ans: 1 },
+  { page: 100, hasImg: true, type: "q", text: "14 - How much is the normal range of passive hip ABduction ?", options: ["A. Normal range is 10°", "B. Normal range is 45°", "C. Normal range is 90 °", "D. Normal range is 120°"], ans: 1 },
+  { page: 101, hasImg: true, type: "q", text: "15 - Pain in hip/groin, stiffness, instability, limp. Most likely diagnosis ?", options: ["A. Dancer’s hip", "B. Hip osteoarthritis", "C. Hip avascular necrosis", "D. Anterior hip dislocation", "E. Hip labral tear"], ans: 4 },
+  { page: 102, hasImg: true, type: "q", text: "16 - Passive ROM test for hip labral tear:", options: ["A. Passive hip internal rotation", "B. Passive hip external rotation", "C. Passive hip flexion", "D. Passive hip extension"], ans: 0 },
+  { page: 103, hasImg: true, type: "q", text: "17 - Which test is one approach to diagnosis of a hip labral tear / gluteal weakness ?", options: ["A. FADIR test", "B. Log roll test", "C. Thomas test", "D. Trendelenburg Test"], ans: 3 },
+  { page: 104, hasImg: true, type: "q", text: "18 - Pain outside left hip/thigh when lying on affected side and walking up stairs. Most likely diagnosis ?", options: ["A. Snapping hip syndrome", "B. Piriformis Syndrome", "C. Meralgia Paresthetica", "D. Trochanteric Bursitis"], ans: 3 },
+  { page: 105, hasImg: true, type: "q", text: "19 - Pain starting around front of right hip radiating down thigh to knee. Most likely diagnosis ?", options: ["A. Snapping hip syndrome", "B. Piriformis Syndrome", "C. Iliopsoas Bursitis Symptoms", "D. Trochanteric Bursitis"], ans: 2 },
+  { page: 106, hasImg: true, type: "q", text: "20 - Single most specific test for hip pain / intra-articular pathology. Test name ?", options: ["A. FADIR test", "B. Log roll test", "C. Thomas test", "D. Trendelenburg Test"], ans: 1 },
+  { page: 107, hasImg: true, type: "slide", text: "SLIDE: THANK YOU FOR YOUR PARTICIPANT !" },
+  { page: 108, hasImg: false, type: "q", text: "Football match injury, swelling outside knee, positive varus stress test. What’s the diagnosis ?", options: ["A - Rutured ACL", "B - Rutured PCL", "C - Rutured MCL", "D - Rutured LCL", "E - Rutured Patellar tendon"], ans: 3 },
+  { page: 109, hasImg: false, type: "q", text: "Twists knee while running, swelling inside edge, positive valgus stress test. What’s the diagnosis ?", options: ["A - Rutured ACL", "B - Rutured PCL", "C - Rutured MCL", "D - Rutured LCL", "E - Rutured Patellar tendon"], ans: 2 },
+  { page: 110, hasImg: false, type: "q", text: "Landing awkwardly from jump, popping sensation, positive Lachman’s Test. What’s the diagnosis ?", options: ["A - Rutured ACL", "B - Rutured PCL", "C - Rutured MCL", "D - Rutured LCL", "E - Rutured Patellar tendon"], ans: 0 },
+  { page: 111, hasImg: false, type: "q", text: "Bent knee slams against dashboard, positive Posterior sag Test. Which ligament is injured ?", options: ["A. Medial collateral ligament", "B. Lateral collateral ligament", "C. Anterior cruciate ligament", "D. Posterior cruciate ligament"], ans: 3 },
+  { page: 112, hasImg: true, type: "slide", text: "ANATOMY GRAPHIC SLIDE: KNEE JOINT" },
+  { page: 113, hasImg: false, type: "q", text: "Which test evaluate for syndesmotic injury ?", options: ["A. The Squeeze test", "B. Anterior drawer test", "C. Thompson test", "D. Homan’s sign", "E. Tibial Torsion test"], ans: 0 },
+  { page: 114, hasImg: false, type: "q", text: "Which test evaluate for medial and lateral collateral ligament injury ?", options: ["A. Stress test", "B. Anterior drawer test", "C. Thompson test", "D. Homan’s sign", "E. Tibial Torsion test"], ans: 0 },
+  { page: 115, hasImg: false, type: "q", text: "Which test evaluate for anterior talofibular ligament injury ?", options: ["A. The Squeeze test", "B. Anterior drawer test", "C. Thompson test", "D. Homan’s sign", "E. Tibial Torsion test"], ans: 1 },
+  { page: 116, hasImg: false, type: "q", text: "Which test evaluate for rupture of tendo-Achilles ?", options: ["A. The Squeeze test", "B. Anterior drawer test", "C. Thompson test", "D. Homan’s sign", "E. Tibial Torsion test"], ans: 2 },
+  { page: 117, hasImg: false, type: "q", text: "Which test evaluate for deep vein thrombophlebitis ?", options: ["A. The Squeeze test", "B. Anterior drawer test", "C. Thompson test", "D. Homan’s sign", "E. Tibial Torsion test"], ans: 3 },
+  { page: 118, hasImg: false, type: "q", text: "Which test evaluate for internal rotation of tibia ?", options: ["A. The Squeeze test", "B. Anterior drawer test", "C. Thompson test", "D. Homan’s sign", "E. Tibial Torsion test"], ans: 4 },
+  { page: 119, hasImg: true, type: "slide", text: "SLIDE: THANK YOU FOR YOUR ATTENTIONS !" }
+];
+
+// User State
+let userAnswers = {};
+let currentFilter = 'all';
+let allImagesVisible = true;
+
+const totalQuestions = qcmData.filter(i => i.type === 'q').length;
+document.getElementById('totalQuestionsCount').textContent = totalQuestions;
+
+function renderCards() {
+    const container = document.getElementById('cardsContainer');
+    container.innerHTML = '';
+
+    qcmData.forEach(item => {
+        const imgName = `sssss_page_${item.page}.png`;
+        const card = document.createElement('div');
+        const isSlide = item.type === 'slide';
+        card.className = `card ${item.hasImg ? 'has-img' : ''} ${isSlide ? 'is-slide' : ''}`;
+        card.id = `card-page-${item.page}`;
+        card.setAttribute('data-page', item.page);
+        card.setAttribute('data-has-img', item.hasImg);
+
+        const imgBadge = item.hasImg ? '<span class="badge badge-img">📷 Has Image</span>' : '';
+        const slideBadge = isSlide ? '<span class="badge badge-slide">Slide</span>' : '';
+
+        let optionsHtml = '';
+        if (item.type === 'q' && item.options) {
+            optionsHtml = '<div class="options-list">';
+            item.options.forEach((opt, idx) => {
+                optionsHtml += `<button class="option-btn" onclick="selectOption(${item.page}, ${idx})">${opt}</button>`;
+            });
+            optionsHtml += '</div>';
+        }
+
+        const hiddenClass = allImagesVisible ? '' : 'img-hidden';
+
+        card.innerHTML = `
+            <div class="card-header">
+                <div>
+                    <span class="badge badge-page">Page ${item.page}</span>
+                    ${imgBadge}
+                    ${slideBadge}
+                    <button class="btn btn-sm" onclick="toggleSingleImage(${item.page})">👁️ Toggle Image</button>
+                </div>
+                <a href="${imgName}" target="_blank" class="img-link">🔗 Open Image in New Tab</a>
+            </div>
+            <div class="question-text">${item.text}</div>
+            ${optionsHtml}
+            <div class="img-container ${hiddenClass}" id="img-container-${item.page}">
+                <img src="${imgName}" class="q-img" loading="lazy" onerror="this.closest('.img-container').style.display='none';">
+            </div>
+        `;
+
+        container.appendChild(card);
+    });
+
+    updateScoreboard();
+}
+
+// IN-PLACE OPTION SELECTION (Does NOT move or remove the card)
+function selectOption(page, selectedIdx) {
+    if (userAnswers[page] !== undefined) return; // Prevent changing answer once submitted
+
+    userAnswers[page] = selectedIdx;
+    const item = qcmData.find(i => i.page === page);
+    const card = document.getElementById(`card-page-${page}`);
+    if (!card || !item) return;
+
+    const optionBtns = card.querySelectorAll('.option-btn');
+    optionBtns.forEach((btn, idx) => {
+        btn.classList.add('disabled');
+        btn.onclick = null; // Disable further clicking
+
+        if (idx === item.ans) {
+            btn.classList.add('show-correct');
+        }
+        if (idx === selectedIdx) {
+            if (selectedIdx === item.ans) {
+                btn.classList.add('selected-correct');
+            } else {
+                btn.classList.add('selected-incorrect');
+            }
+        }
+    });
+
+    // Add feedback message inside the card without moving it
+    const isRight = selectedIdx === item.ans;
+    const msgClass = isRight ? 'msg-correct' : 'msg-incorrect';
+    const msgText = isRight ? '✓ Correct Answer!' : `❌ Incorrect! Correct Answer: ${item.options[item.ans]}`;
+
+    let feedbackDiv = card.querySelector('.feedback-msg');
+    if (!feedbackDiv) {
+        feedbackDiv = document.createElement('div');
+        card.querySelector('.options-list').after(feedbackDiv);
+    }
+    feedbackDiv.className = `feedback-msg ${msgClass}`;
+    feedbackDiv.innerHTML = msgText;
+
+    updateScoreboard();
+}
+
+// TOGGLE ALL IMAGES GLOBAL
+function toggleAllImages() {
+    allImagesVisible = !allImagesVisible;
+    const btn = document.getElementById('toggleAllImgBtn');
+    
+    if (allImagesVisible) {
+        btn.textContent = '👁️ Hide All Images';
+        document.querySelectorAll('.img-container').forEach(el => el.classList.remove('img-hidden'));
+    } else {
+        btn.textContent = '👁️ Show All Images';
+        document.querySelectorAll('.img-container').forEach(el => el.classList.add('img-hidden'));
+    }
+}
+
+// TOGGLE SINGLE IMAGE PER CARD
+function toggleSingleImage(page) {
+    const imgContainer = document.getElementById(`img-container-${page}`);
+    if (imgContainer) {
+        // If it was hidden by onerror, restore inline display style
+        imgContainer.style.display = '';
+        imgContainer.classList.toggle('img-hidden');
+    }
+}
+
+function updateScoreboard() {
+    let answered = 0;
+    let correct = 0;
+
+    qcmData.forEach(item => {
+        if (item.type === 'q' && userAnswers[item.page] !== undefined) {
+            answered++;
+            if (userAnswers[item.page] === item.ans) {
+                correct++;
+            }
+        }
+    });
+
+    document.getElementById('answeredCount').textContent = answered;
+    document.getElementById('correctCount').textContent = correct;
+    const percent = answered > 0 ? Math.round((correct / answered) * 100) : 0;
+    document.getElementById('accuracyPercent').textContent = `${percent}%`;
+}
+
+function resetQuiz() {
+    if (confirm("Are you sure you want to reset your quiz progress?")) {
+        userAnswers = {};
+        renderCards();
+    }
+}
+
+function setFilter(filter) {
+    currentFilter = filter;
+    
+    document.querySelectorAll('.controls .btn').forEach(b => b.classList.remove('btn-active'));
+    document.getElementById(`filter-${filter}`).classList.add('btn-active');
+    
+    filterCards();
+}
+
+function filterCards() {
+    const query = document.getElementById('searchInput').value.toLowerCase();
+    const cards = document.querySelectorAll('.card');
+
+    cards.forEach(card => {
+        const page = parseInt(card.getAttribute('data-page'));
+        const item = qcmData.find(i => i.page === page);
+        const text = card.textContent.toLowerCase();
+        const hasImg = card.getAttribute('data-has-img') === 'true';
+        const isAnswered = userAnswers[page] !== undefined;
+        const isCorrect = isAnswered && (userAnswers[page] === item.ans);
+
+        let matchesFilter = true;
+        if (currentFilter === 'img') matchesFilter = hasImg;
+        if (currentFilter === 'unanswered') matchesFilter = (item.type === 'q' && !isAnswered);
+        if (currentFilter === 'incorrect') matchesFilter = (item.type === 'q' && isAnswered && !isCorrect);
+
+        let matchesSearch = text.includes(query);
+
+        if (matchesFilter && matchesSearch) {
+            card.style.display = 'block';
+        } else {
+            card.style.display = 'none';
+        }
+    });
+}
+
+// Initial render
+renderCards();
+</script>
+
+</body>
+</html>
