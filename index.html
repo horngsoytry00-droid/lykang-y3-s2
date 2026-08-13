@@ -23,7 +23,7 @@
             margin-bottom: 15px;
         }
         
-        /* Score Board Header */
+        /* Auto-Hiding Sticky Scoreboard Header */
         .scoreboard {
             position: sticky;
             top: 10px;
@@ -39,7 +39,18 @@
             justify-content: space-between;
             align-items: center;
             border: 2px solid #1877f2;
+            /* Smooth Hide/Show Transition */
+            transition: transform 0.35s ease-in-out, opacity 0.3s ease-in-out;
+            will-change: transform, opacity;
         }
+
+        /* Class applied via JS when scrolling down to hide header */
+        .scoreboard.scroll-hidden {
+            transform: translateY(-150%);
+            opacity: 0;
+            pointer-events: none;
+        }
+
         .score-item {
             font-size: 15px;
             font-weight: bold;
@@ -215,8 +226,8 @@
 <div class="container">
     <h1>📝 Medical QCM Practice Test</h1>
 
-    <!-- Score & Control Board -->
-    <div class="scoreboard">
+    <!-- Auto-Hiding Score & Control Board -->
+    <div class="scoreboard" id="scoreboardHeader">
         <div class="score-item">Progress: <span class="score-num" id="answeredCount">0</span> / <span id="totalQuestionsCount">113</span></div>
         <div class="score-item">Score: <span class="score-num" id="correctCount">0</span></div>
         <div class="score-item">Accuracy: <span class="score-num" id="accuracyPercent">0%</span></div>
@@ -367,6 +378,22 @@ let allImagesVisible = true;
 const totalQuestions = qcmData.filter(i => i.type === 'q').length;
 document.getElementById('totalQuestionsCount').textContent = totalQuestions;
 
+// SMART AUTO-HIDE HEADER ON SCROLL
+let lastScrollTop = 0;
+window.addEventListener('scroll', function() {
+    let scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+    const scoreboard = document.getElementById('scoreboardHeader');
+    
+    if (scrollTop > lastScrollTop && scrollTop > 120) {
+        // Scrolling down -> Hide Scoreboard Header
+        scoreboard.classList.add('scroll-hidden');
+    } else {
+        // Scrolling up -> Show Scoreboard Header
+        scoreboard.classList.remove('scroll-hidden');
+    }
+    lastScrollTop = scrollTop <= 0 ? 0 : scrollTop;
+});
+
 function renderCards() {
     const container = document.getElementById('cardsContainer');
     container.innerHTML = '';
@@ -477,7 +504,6 @@ function toggleAllImages() {
 function toggleSingleImage(page) {
     const imgContainer = document.getElementById(`img-container-${page}`);
     if (imgContainer) {
-        // If it was hidden by onerror, restore inline display style
         imgContainer.style.display = '';
         imgContainer.classList.toggle('img-hidden');
     }
